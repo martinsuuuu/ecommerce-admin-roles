@@ -210,12 +210,12 @@ export function CustomerView({ user, onLogout, cart, onUpdateCartQuantity, onRem
                           <ImageWithFallback
                             src={item.image}
                             alt={item.name}
-                            className="w-24 h-24 object-cover rounded-xl"
+                            className="w-24 h-24 object-cover rounded-xl flex-shrink-0"
                           />
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-[#7d5a50] mb-1">{item.name}</h3>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-[#7d5a50] mb-1 line-clamp-2">{item.name}</h3>
                             <p className="text-lg font-bold text-[#f8bbd0] mb-2">₱{item.price}</p>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                               <div className="flex items-center gap-2 bg-[#fff4e6] rounded-xl p-1">
                                 <Button
                                   size="icon"
@@ -242,13 +242,13 @@ export function CustomerView({ user, onLogout, cart, onUpdateCartQuantity, onRem
                                 onClick={() => onRemoveFromCart(item.id)}
                               >
                                 <Trash2 className="w-4 h-4 mr-1" />
-                                Remove
+                                <span className="hidden sm:inline">Remove</span>
                               </Button>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right flex-shrink-0 min-w-[100px]">
                             <p className="text-sm text-[#a67c6d] mb-1">Subtotal</p>
-                            <p className="text-xl font-bold text-[#7d5a50]">₱{(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-lg sm:text-xl font-bold text-[#7d5a50] whitespace-nowrap">₱{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
                         </div>
                       ))}
