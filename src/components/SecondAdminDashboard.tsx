@@ -38,6 +38,7 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedShippingMethods, setSelectedShippingMethods] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchOrders();
@@ -269,15 +270,17 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
 
                     <div className="flex items-center gap-3">
                       <Select
-                        defaultValue={order.shippingMethod || ''}
+                        value={selectedShippingMethods[order.id] || order.shippingMethod || ''}
                         onValueChange={(value) =>
-                          updateOrderStatus(order.id, 'shipped', value)
+                          setSelectedShippingMethods(prev => ({ ...prev, [order.id]: value }))
                         }
                       >
                         <SelectTrigger className="w-48 border-[#d4a5a5]/40 focus:border-[#f8bbd0] rounded-xl">
                           <SelectValue placeholder="Select shipping method" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="lalamove">Lalamove</SelectItem>
+                          <SelectItem value="shopee">Shopee Checkout</SelectItem>
                           <SelectItem value="standard">Standard Shipping</SelectItem>
                           <SelectItem value="express">Express Shipping</SelectItem>
                           <SelectItem value="pickup">Store Pickup</SelectItem>
@@ -285,7 +288,14 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
                       </Select>
                       {order.status === 'fully_paid' && (
                         <Button
-                          onClick={() => updateOrderStatus(order.id, 'shipped', order.shippingMethod)}
+                          onClick={() => {
+                            const shippingMethod = selectedShippingMethods[order.id] || order.shippingMethod;
+                            if (shippingMethod) {
+                              updateOrderStatus(order.id, 'shipped', shippingMethod);
+                            } else {
+                              toast.error('Please select a shipping method');
+                            }
+                          }}
                           className="bg-gradient-to-r from-[#f8bbd0] to-[#ffc1e3] hover:from-[#f48fb1] hover:to-[#f8bbd0] text-white rounded-xl shadow-lg"
                         >
                           Mark as Shipped
