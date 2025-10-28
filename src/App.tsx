@@ -4,7 +4,6 @@ import { LoginPage } from './components/LoginPage';
 import { MasterAdminDashboard } from './components/MasterAdminDashboard';
 import { SecondAdminDashboard } from './components/SecondAdminDashboard';
 import { CustomerView } from './components/CustomerView';
-import { projectId, publicAnonKey } from './utils/supabase/info';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -13,58 +12,32 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize server and check for stored user session on mount
-    const initializeApp = async () => {
-      try {
-        // Call the init endpoint to create default users if they don't exist
-        const initResponse = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-793a174e/init`,
-          {
-            headers: {
-              Authorization: `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
-        
-        if (initResponse.ok) {
-          const initData = await initResponse.json();
-          console.log('Server initialized:', initData.message);
-        } else {
-          console.error('Failed to initialize server:', await initResponse.text());
-        }
-      } catch (error) {
-        console.error('Error initializing server:', error);
-      }
-      
-      // Check for stored user session
-      const storedUser = localStorage.getItem('littleMija_currentUser');
-      const storedCart = localStorage.getItem('littleMija_shoppingCart');
-      
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setCurrentUser(parsedUser);
-          setView('dashboard');
-        } catch (error) {
-          console.error('Error parsing stored user:', error);
-          localStorage.removeItem('littleMija_currentUser');
-        }
-      }
-      
-      if (storedCart) {
-        try {
-          const parsedCart = JSON.parse(storedCart);
-          setCart(parsedCart);
-        } catch (error) {
-          console.error('Error parsing stored cart:', error);
-          localStorage.removeItem('littleMija_shoppingCart');
-        }
-      }
-      
-      setIsLoading(false);
-    };
+    // Check for stored user session on mount
+    const storedUser = localStorage.getItem('littleMija_currentUser');
+    const storedCart = localStorage.getItem('littleMija_shoppingCart');
     
-    initializeApp();
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setCurrentUser(parsedUser);
+        setView('dashboard');
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('littleMija_currentUser');
+      }
+    }
+    
+    if (storedCart) {
+      try {
+        const parsedCart = JSON.parse(storedCart);
+        setCart(parsedCart);
+      } catch (error) {
+        console.error('Error parsing stored cart:', error);
+        localStorage.removeItem('littleMija_shoppingCart');
+      }
+    }
+    
+    setIsLoading(false);
   }, []);
 
   // Save cart to localStorage whenever it changes
@@ -158,9 +131,9 @@ export default function App() {
   // If user is logged in, show dashboard regardless of view state
   if (currentUser) {
     if (currentUser.role === 'master') {
-      return <MasterAdminDashboard user={currentUser} onLogout={handleLogout} />;
+      return <MasterAdminDashboard user={currentUser} onLogout={handleLogout} onGoHome={handleBackToPublic} />;
     } else if (currentUser.role === 'second') {
-      return <SecondAdminDashboard user={currentUser} onLogout={handleLogout} />;
+      return <SecondAdminDashboard user={currentUser} onLogout={handleLogout} onGoHome={handleBackToPublic} />;
     } else if (currentUser.role === 'customer') {
       return (
         <CustomerView 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { DollarSign, ShoppingCart, Package, TrendingUp, TrendingDown, Activity, CheckCircle2, Receipt, BarChart3 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { DollarSign, ShoppingCart, Package, TrendingUp, TrendingDown, Activity, CheckCircle2, BarChart3, Receipt } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { ExpenseTracking } from './ExpenseTracking';
 import { Reports } from './Reports';
@@ -27,6 +27,7 @@ export function Overview() {
     totalProducts: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<'overview' | 'expenses' | 'reports'>('overview');
 
   useEffect(() => {
     fetchStats();
@@ -49,13 +50,9 @@ export function Overview() {
       if (response.ok) {
         const data = await response.json();
         setStats(data);
-      } else {
-        const errorText = await response.text();
-        console.error('Failed to fetch stats. Status:', response.status, 'Error:', errorText);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
-      console.error('Error details:', error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }
@@ -133,34 +130,43 @@ export function Overview() {
   ];
 
   return (
-    <Tabs defaultValue="overview" className="space-y-4 md:space-y-6">
-      <TabsList className="bg-transparent p-1.5 rounded-2xl w-full md:w-auto grid grid-cols-3 gap-2">
-        <TabsTrigger 
-          value="overview" 
-          className="data-[state=active]:bg-white data-[state=active]:text-[#7d5a50] data-[state=active]:shadow-lg hover:bg-white/50 transition-all duration-200 rounded-xl px-3 md:px-6 py-2 text-xs md:text-sm flex items-center justify-center text-[#7d5a50]/60"
+    <div className="space-y-6">
+      {/* View Switcher */}
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-lg w-fit">
+        <Button
+          variant={activeView === 'overview' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveView('overview')}
+          className={activeView === 'overview' ? 'bg-white shadow-sm' : ''}
         >
-          <Activity className="w-4 h-4 md:mr-2" strokeWidth={2.5} />
-          <span className="hidden md:inline">Overview</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="expenses"
-          className="data-[state=active]:bg-white data-[state=active]:text-[#7d5a50] data-[state=active]:shadow-lg hover:bg-white/50 transition-all duration-200 rounded-xl px-3 md:px-6 py-2 text-xs md:text-sm flex items-center justify-center text-[#7d5a50]/60"
+          <Activity className="w-4 h-4 mr-2" />
+          Overview
+        </Button>
+        <Button
+          variant={activeView === 'expenses' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveView('expenses')}
+          className={activeView === 'expenses' ? 'bg-white shadow-sm' : ''}
         >
-          <Receipt className="w-4 h-4 md:mr-2" strokeWidth={2.5} />
-          <span className="hidden md:inline">Expenses</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="reports"
-          className="data-[state=active]:bg-white data-[state=active]:text-[#7d5a50] data-[state=active]:shadow-lg hover:bg-white/50 transition-all duration-200 rounded-xl px-3 md:px-6 py-2 text-xs md:text-sm flex items-center justify-center text-[#7d5a50]/60"
+          <Receipt className="w-4 h-4 mr-2" />
+          Expenses
+        </Button>
+        <Button
+          variant={activeView === 'reports' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveView('reports')}
+          className={activeView === 'reports' ? 'bg-white shadow-sm' : ''}
         >
-          <BarChart3 className="w-4 h-4 md:mr-2" strokeWidth={2.5} />
-          <span className="hidden md:inline">Reports</span>
-        </TabsTrigger>
-      </TabsList>
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Reports
+        </Button>
+      </div>
 
-      <TabsContent value="overview" className="space-y-4 md:space-y-8">
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Content based on active view */}
+      {activeView === 'overview' && (
+        <div className="space-y-8">
+          {/* Stats Grid */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -188,12 +194,12 @@ export function Overview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-slate-200 shadow-sm hover-lift">
           <CardHeader className="border-b border-slate-100">
             <CardTitle>Financial Summary</CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 md:pt-6">
+          <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
                 <div>
@@ -226,7 +232,7 @@ export function Overview() {
           <CardHeader className="border-b border-slate-100">
             <CardTitle>Order Overview</CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 md:pt-6">
+          <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
                 <div>
@@ -255,15 +261,11 @@ export function Overview() {
           </CardContent>
         </Card>
       </div>
-      </TabsContent>
+    </div>
+      )}
 
-      <TabsContent value="expenses">
-        <ExpenseTracking />
-      </TabsContent>
-
-      <TabsContent value="reports">
-        <Reports />
-      </TabsContent>
-    </Tabs>
+      {activeView === 'expenses' && <ExpenseTracking />}
+      {activeView === 'reports' && <Reports />}
+    </div>
   );
 }

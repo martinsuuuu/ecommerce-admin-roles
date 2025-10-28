@@ -32,9 +32,10 @@ type Order = {
 type SecondAdminDashboardProps = {
   user: User;
   onLogout: () => void;
+  onGoHome?: () => void;
 };
 
-export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardProps) {
+export function SecondAdminDashboard({ user, onLogout, onGoHome }: SecondAdminDashboardProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,38 +101,39 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
     <div className="min-h-screen bg-gradient-to-br from-[#faf3f0] via-[#fef7f3] to-[#fff9f5] font-['Poppins',sans-serif]">
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm border-b-2 border-[#d4a5a5]/20 sticky top-0 z-30 shadow-sm">
-        <div className="px-4 md:px-8 py-4">
+        <div className="px-4 sm:px-8 py-4">
           <div className="flex items-center justify-between">
-            <button 
-              onClick={onLogout}
-              className="flex items-center gap-3 md:gap-4 hover:opacity-80 transition-opacity"
-            >
-              <img src={logoImage} alt="Little Mija" className="w-10 md:w-12 h-10 md:h-12 rounded-full shadow-md" />
-              <div className="text-left">
-                <h1 className="text-lg md:text-2xl font-bold text-[#7d5a50]">Warehouse Dashboard</h1>
-                <p className="text-xs md:text-sm text-[#a67c6d]">Ready to Ship Orders</p>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <img 
+                src={logoImage} 
+                alt="Little Mija" 
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-md cursor-pointer" 
+                onClick={onGoHome}
+              />
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold text-[#7d5a50]">Warehouse Dashboard</h1>
+                <p className="text-xs sm:text-sm text-[#a67c6d] hidden sm:block">Ready to Ship Orders</p>
               </div>
-            </button>
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-xl bg-[#fff4e6] border-2 border-[#d4a5a5]/20">
+            </div>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 rounded-xl bg-[#fff4e6] border-2 border-[#d4a5a5]/20">
                 <div className="w-9 h-9 bg-gradient-to-br from-[#81d4fa] to-[#4fc3f7] rounded-full flex items-center justify-center shadow-md">
                   <span className="text-white font-semibold text-sm">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div>
+                <div className="hidden sm:block">
                   <p className="font-medium text-[#7d5a50] text-sm">{user.name}</p>
                   <p className="text-xs text-[#a67c6d]">{user.email}</p>
                 </div>
               </div>
               <Button
                 variant="outline"
-                size="sm"
-                className="gap-2 border-2 border-[#d4a5a5]/40 text-[#7d5a50] hover:bg-red-50 hover:text-red-600 hover:border-red-300 rounded-xl"
+                className="gap-2 border-2 border-[#d4a5a5]/40 text-[#7d5a50] hover:bg-red-50 hover:text-red-600 hover:border-red-300 rounded-xl text-xs sm:text-base"
                 onClick={onLogout}
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden md:inline">Logout</span>
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
@@ -139,7 +141,7 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
       </header>
 
       {/* Main Content */}
-      <main className="p-4 md:p-8">
+      <main className="p-8">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-2 border-[#d4a5a5]/20 shadow-lg hover-lift bg-white/90 backdrop-blur-sm rounded-2xl">

@@ -124,85 +124,47 @@ export function CustomerView({ user, onLogout, cart, onUpdateCartQuantity, onRem
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf3f0] via-[#fef7f3] to-[#fff9f5] font-['Poppins',sans-serif] pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf3f0] via-[#fef7f3] to-[#fff9f5] font-['Poppins',sans-serif]">
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm border-b-2 border-[#d4a5a5]/20 sticky top-0 z-30 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <button 
-              onClick={onLogout}
-              className="flex items-center gap-3 md:gap-4 hover:opacity-80 transition-opacity"
-            >
-              <img src={logoImage} alt="Little Mija" className="w-10 md:w-12 h-10 md:h-12 rounded-full shadow-md" />
-              <div className="text-left">
-                <h1 className="text-lg md:text-2xl font-bold text-[#7d5a50]">Little Mija</h1>
-                <p className="text-xs md:text-sm text-[#a67c6d]">My Shopping</p>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <img src={logoImage} alt="Little Mija" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-md" />
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold text-[#7d5a50]">Little Mija</h1>
+                <p className="text-xs sm:text-sm text-[#a67c6d] hidden sm:block">My Shopping</p>
               </div>
-            </button>
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-xl bg-[#fff4e6] border-2 border-[#d4a5a5]/20">
+            </div>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 rounded-xl bg-[#fff4e6] border-2 border-[#d4a5a5]/20">
                 <div className="w-9 h-9 bg-gradient-to-br from-[#f8bbd0] to-[#ffc1e3] rounded-full flex items-center justify-center shadow-md">
                   <span className="text-white font-semibold text-sm">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div>
+                <div className="hidden sm:block">
                   <p className="font-medium text-[#7d5a50] text-sm">{user.name}</p>
                   <p className="text-xs text-[#a67c6d]">{user.email}</p>
                 </div>
               </div>
               <Button
                 variant="outline"
-                size="sm"
-                className="gap-2 border-2 border-[#d4a5a5]/40 text-[#7d5a50] hover:bg-red-50 hover:text-red-600 hover:border-red-300 rounded-xl"
+                className="gap-2 border-2 border-[#d4a5a5]/40 text-[#7d5a50] hover:bg-red-50 hover:text-red-600 hover:border-red-300 rounded-xl text-xs sm:text-base"
                 onClick={onLogout}
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden md:inline">Logout</span>
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Bottom Navigation for Mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t-2 border-[#d4a5a5]/20 shadow-lg">
-        <div className="grid grid-cols-2 gap-1 px-2 py-2">
-          <button
-            onClick={() => setActiveTab('cart')}
-            className={`flex items-center justify-center py-2.5 px-4 rounded-xl transition-all relative ${
-              activeTab === 'cart'
-                ? 'bg-gradient-to-r from-[#f8bbd0] to-[#ffc1e3] text-white'
-                : 'text-[#7d5a50]'
-            }`}
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#f8bbd0] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {cart.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('orders');
-              fetchOrders();
-            }}
-            className={`flex items-center justify-center py-2.5 px-4 rounded-xl transition-all ${
-              activeTab === 'orders'
-                ? 'bg-gradient-to-r from-[#f8bbd0] to-[#ffc1e3] text-white'
-                : 'text-[#7d5a50]'
-            }`}
-          >
-            <Package className="w-5 h-5" />
-          </button>
-        </div>
-      </nav>
-
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 md:py-8">
-        <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="space-y-6 md:space-y-8">
-          <TabsList className="hidden md:flex bg-white/90 backdrop-blur-sm border-2 border-[#d4a5a5]/20 p-1 rounded-2xl shadow-lg">
+      <main className="container mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="space-y-8">
+          <TabsList className="bg-white/90 backdrop-blur-sm border-2 border-[#d4a5a5]/20 p-1 rounded-2xl shadow-lg">
             <TabsTrigger 
               value="cart" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#f8bbd0] data-[state=active]:to-[#ffc1e3] data-[state=active]:text-white rounded-xl px-6 py-2"
@@ -248,12 +210,12 @@ export function CustomerView({ user, onLogout, cart, onUpdateCartQuantity, onRem
                           <ImageWithFallback
                             src={item.image}
                             alt={item.name}
-                            className="w-24 h-24 object-cover rounded-xl"
+                            className="w-24 h-24 object-cover rounded-xl flex-shrink-0"
                           />
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-[#7d5a50] mb-1">{item.name}</h3>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-[#7d5a50] mb-1 line-clamp-2">{item.name}</h3>
                             <p className="text-lg font-bold text-[#f8bbd0] mb-2">₱{item.price}</p>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                               <div className="flex items-center gap-2 bg-[#fff4e6] rounded-xl p-1">
                                 <Button
                                   size="icon"
@@ -280,13 +242,13 @@ export function CustomerView({ user, onLogout, cart, onUpdateCartQuantity, onRem
                                 onClick={() => onRemoveFromCart(item.id)}
                               >
                                 <Trash2 className="w-4 h-4 mr-1" />
-                                Remove
+                                <span className="hidden sm:inline">Remove</span>
                               </Button>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right flex-shrink-0 min-w-[100px]">
                             <p className="text-sm text-[#a67c6d] mb-1">Subtotal</p>
-                            <p className="text-xl font-bold text-[#7d5a50]">₱{(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-lg sm:text-xl font-bold text-[#7d5a50] whitespace-nowrap">₱{(item.price * item.quantity).toFixed(2)}</p>
                           </div>
                         </div>
                       ))}

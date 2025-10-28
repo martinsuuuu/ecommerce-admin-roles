@@ -9,8 +9,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { toast } from 'sonner@2.0.3';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
-import { Package, Truck, CheckCircle, XCircle, CheckSquare, DollarSign, Coins, Edit, ChevronRight } from 'lucide-react';
-import { OrderDetail } from './OrderDetail';
+import { Package, Truck, CheckCircle, XCircle, CheckSquare, DollarSign, Coins } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
+import { MobileOrderDetails } from './MobileOrderDetails';
 
 type Order = {
   id: string;
@@ -50,21 +50,9 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [depositConfirmOpen, setDepositConfirmOpen] = useState(false);
   const [fullPaymentConfirmOpen, setFullPaymentConfirmOpen] = useState(false);
-  const [editDepositOpen, setEditDepositOpen] = useState(false);
   const [orderToAction, setOrderToAction] = useState<Order | null>(null);
-  const [newDepositAmount, setNewDepositAmount] = useState('');
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if mobile view
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const [mobileOrderDetailsOpen, setMobileOrderDetailsOpen] = useState(false);
+  const [selectedOrderForMobile, setSelectedOrderForMobile] = useState<Order | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -79,29 +67,18 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
         ? `https://${projectId}.supabase.co/functions/v1/make-server-793a174e/orders?filter=ready_to_ship`
         : `https://${projectId}.supabase.co/functions/v1/make-server-793a174e/orders`;
 
-      console.log('Fetching orders from:', url);
-
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${publicAnonKey}`,
         },
       });
 
-      console.log('Response status:', response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('Orders fetched:', data.orders?.length || 0);
         setOrders(data.orders || []);
-      } else {
-        const errorText = await response.text();
-        console.error('Failed to fetch orders. Status:', response.status, 'Error:', errorText);
-        toast.error(`Failed to load orders: ${response.status}`);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
-      console.error('Error details:', error instanceof Error ? error.message : String(error));
-      toast.error('Failed to connect to server. Please check your internet connection.');
     } finally {
       setLoading(false);
     }
@@ -135,44 +112,79 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
   };
 
   const markReadyForPayment = async (orderId: string) => {
-    await updateOrderStatus(orderId, 'ready_for_payment');
+    try {
+      await updateOrderStatus(orderId, 'ready_for_payment');
+    } catch (error) {
+      console.error('Error marking ready for payment:', error);
+    }
   };
 
   const markAsShipped = async (orderId: string, shippingMethod: string) => {
-    await updateOrderStatus(orderId, 'shipped', shippingMethod);
-    setDialogOpen(false);
-  };
-
-  const handleCancelOrder = () => {
-    if (orderToAction) {
-      updateOrderStatus(orderToAction.id, 'cancelled');
-      setCancelDialogOpen(false);
-      setOrderToAction(null);
+    try {
+      await updateOrderStatus(orderId, 'shipped', shippingMethod);
+      setDialogOpen(false);
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error('Error marking as shipped:', error);
     }
   };
 
-  const handleCompleteOrder = () => {
+  const handleCancelOrder = async () => {
     if (orderToAction) {
-      updateOrderStatus(orderToAction.id, 'completed');
-      setCompleteDialogOpen(false);
-      setOrderToAction(null);
+      try {
+        await updateOrderStatus(orderToAction.id, 'cancelled');
+        setCancelDialogOpen(false);
+        setOrderToAction(null);
+      } catch (error) {
+        console.error('Error cancelling order:', error);
+      }
     }
   };
 
-  const handleConfirmDeposit = () => {
+  const handleCompleteOrder = async () => {
     if (orderToAction) {
-      updateOrderStatus(orderToAction.id, 'deposit_paid');
-      setDepositConfirmOpen(false);
-      setOrderToAction(null);
+      try {
+        await updateOrderStatus(orderToAction.id, 'completed');
+        setCompleteDialogOpen(false);
+        setOrderToAction(null);
+      } catch (error) {
+        console.error('Error completing order:', error);
+      }
     }
   };
 
-  const handleConfirmFullPayment = () => {
+  const handleConfirmDeposit = async () => {
     if (orderToAction) {
-      updateOrderStatus(orderToAction.id, 'fully_paid');
-      setFullPaymentConfirmOpen(false);
-      setOrderToAction(null);
+      try {
+        await updateOrderStatus(orderToAction.id, 'deposit_paid');
+        setDepositConfirmOpen(false);
+        setOrderToAction(null);
+      } catch (error) {
+        console.error('Error confirming deposit:', error);
+      }
     }
+  };
+
+  const handleConfirmFullPayment = async () => {
+    if (orderToAction) {
+      try {
+        await updateOrderStatus(orderToAction.id, 'fully_paid');
+        setFullPaymentConfirmOpen(false);
+        setOrderToAction(null);
+      } catch (error) {
+        console.error('Error confirming full payment:', error);
+      }
+    }
+  };
+
+  const handleMobileOrderClick = (order: Order) => {
+    setSelectedOrderForMobile(order);
+    setMobileOrderDetailsOpen(true);
+  };
+
+  const handleBackFromMobileDetails = () => {
+    setMobileOrderDetailsOpen(false);
+    setSelectedOrderForMobile(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -200,17 +212,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
     );
   }
 
-  // Show order detail on mobile
-  if (isMobile && selectedOrderId) {
-    return (
-      <OrderDetail
-        orderId={selectedOrderId}
-        userRole={userRole}
-        onBack={() => setSelectedOrderId(null)}
-      />
-    );
-  }
-
   return (
     <div className="space-y-6">
       {userRole === 'master' && (
@@ -227,38 +228,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Mobile List View */}
-          <div className="md:hidden space-y-3">
-            {orders.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                {userRole === 'second'
-                  ? 'No orders ready to ship at the moment.'
-                  : 'No orders found.'}
-              </div>
-            ) : (
-              orders.map((order) => (
-                <div
-                  key={order.id}
-                  onClick={() => setSelectedOrderId(order.id)}
-                  className="p-4 rounded-xl border-2 border-[#d4a5a5]/20 hover:border-[#f8bbd0] bg-white active:bg-[#fff4e6]/30 transition-all cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <p className="font-semibold text-[#7d5a50]">#{order.id.slice(0, 8)}</p>
-                        {getStatusBadge(order.status)}
-                      </div>
-                      <p className="text-sm text-[#a67c6d]">{order.customerName}</p>
-                      <p className="text-xs text-[#a67c6d]">{order.customerEmail}</p>
-                      <p className="font-semibold text-[#f8bbd0] mt-1">₱{order.totalAmount.toLocaleString()}</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#a67c6d]" />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
             <Table>
@@ -317,7 +286,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                       <TableCell className="text-gray-600">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="w-[250px]">
                         <div className="flex gap-2 flex-wrap">
                           {userRole === 'master' && order.status === 'pending' && (
                             <>
@@ -325,6 +294,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => markReadyForPayment(order.id)}
+                                className="whitespace-nowrap"
                               >
                                 <Package className="mr-1 h-3 w-3" />
                                 Mark Ready
@@ -336,6 +306,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setOrderToAction(order);
                                   setCancelDialogOpen(true);
                                 }}
+                                className="whitespace-nowrap"
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Cancel
@@ -347,7 +318,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-purple-600 hover:bg-purple-700"
+                                className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
                                 onClick={() => {
                                   setOrderToAction(order);
                                   setDepositConfirmOpen(true);
@@ -359,7 +330,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
                                 onClick={() => {
                                   setOrderToAction(order);
                                   setFullPaymentConfirmOpen(true);
@@ -375,6 +346,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setOrderToAction(order);
                                   setCancelDialogOpen(true);
                                 }}
+                                className="whitespace-nowrap"
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Cancel
@@ -386,7 +358,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
                                 onClick={() => {
                                   setOrderToAction(order);
                                   setFullPaymentConfirmOpen(true);
@@ -402,6 +374,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setOrderToAction(order);
                                   setCancelDialogOpen(true);
                                 }}
+                                className="whitespace-nowrap"
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Cancel
@@ -416,6 +389,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setSelectedOrder(order);
                                   setDialogOpen(true);
                                 }}
+                                className="whitespace-nowrap"
                               >
                                 <Truck className="mr-1 h-3 w-3" />
                                 Ship Order
@@ -428,6 +402,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                     setOrderToAction(order);
                                     setCancelDialogOpen(true);
                                   }}
+                                  className="whitespace-nowrap"
                                 >
                                   <XCircle className="mr-1 h-3 w-3" />
                                   Cancel
@@ -445,7 +420,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                 <Button
                                   size="sm"
                                   variant="default"
-                                  className="bg-green-600 hover:bg-green-700"
+                                  className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
                                   onClick={() => {
                                     setOrderToAction(order);
                                     setCompleteDialogOpen(true);
@@ -477,11 +452,65 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
               </TableBody>
             </Table>
           </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {orders.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                {userRole === 'second'
+                  ? 'No orders ready to ship at the moment.'
+                  : 'No orders found.'}
+              </div>
+            ) : (
+              orders.map((order) => (
+                <Card 
+                  key={order.id} 
+                  className="border-2 border-gray-200 cursor-pointer hover:border-[#f8bbd0] hover:shadow-lg transition-all"
+                  onClick={() => handleMobileOrderClick(order)}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-mono text-sm text-gray-600">#{order.id.slice(0, 8)}</p>
+                        <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      {getStatusBadge(order.status)}
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="space-y-1 pb-2 border-b">
+                      <p className="font-semibold text-gray-900">{order.customerName}</p>
+                      <p className="text-sm text-gray-600">{order.customerEmail}</p>
+                    </div>
+
+                    {/* Click to view details */}
+                    <div className="text-center py-2">
+                      <p className="text-xs text-[#a67c6d]">Tap to view full details</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 
+      {/* Mobile Order Details */}
+      {mobileOrderDetailsOpen && selectedOrderForMobile && (
+        <MobileOrderDetails
+          order={selectedOrderForMobile}
+          userRole={userRole}
+          onBack={handleBackFromMobileDetails}
+          onUpdateOrderStatus={updateOrderStatus}
+        />
+      )}
+
       {/* Shipping Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) setSelectedOrder(null);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mark Order as Shipped</DialogTitle>
@@ -515,7 +544,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
 
               <div className="space-y-2">
                 <Label>Select Shipping Method</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     variant="outline"
                     className="h-20 flex flex-col gap-2"
