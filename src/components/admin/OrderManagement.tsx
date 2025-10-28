@@ -53,6 +53,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
   const [editDepositOpen, setEditDepositOpen] = useState(false);
   const [orderToAction, setOrderToAction] = useState<Order | null>(null);
   const [newDepositAmount, setNewDepositAmount] = useState('');
+  const [tempDepositAmount, setTempDepositAmount] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -107,8 +108,12 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, status: string, shippingMethod?: string) => {
+  const updateOrderStatus = async (orderId: string, status: string, shippingMethod?: string, depositAmount?: number) => {
     try {
+      const body: any = { status };
+      if (shippingMethod) body.shippingMethod = shippingMethod;
+      if (depositAmount !== undefined) body.depositAmount = depositAmount;
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-793a174e/orders/${orderId}/status`,
         {
@@ -117,7 +122,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${publicAnonKey}`,
           },
-          body: JSON.stringify({ status, shippingMethod }),
+          body: JSON.stringify(body),
         }
       );
 
@@ -159,11 +164,18 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
     }
   };
 
-  const handleConfirmDeposit = () => {
+  const handleConfirmDeposit = async () => {
     if (orderToAction) {
-      updateOrderStatus(orderToAction.id, 'deposit_paid');
-      setDepositConfirmOpen(false);
-      setOrderToAction(null);
+      const depositAmount = tempDepositAmount ? parseFloat(tempDepositAmount) : (orderToAction.depositAmount || 0);
+      if (depositAmount > 0 && depositAmount <= orderToAction.totalAmount) {
+        // Update order with deposit amount
+        await updateOrderStatus(orderToAction.id, 'deposit_paid', undefined, depositAmount);
+        setDepositConfirmOpen(false);
+        setOrderToAction(null);
+        setTempDepositAmount('');
+      } else {
+        toast.error('Please enter a valid deposit amount');
+      }
     }
   };
 
@@ -617,43 +629,65 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
       </AlertDialog>
 
       {/* Confirm Deposit Payment Dialog */}
-      <AlertDialog open={depositConfirmOpen} onOpenChange={setDepositConfirmOpen}>
-        <AlertDialogContent className="bg-white">
+      <AlertDialog open={depositConfirmOpen} onOpenChange={(open) => {
+        setDepositConfirmOpen(open);
+        if (!open) {
+          setOrderToAction(null);
+          setTempDepositAmount('');
+        }
+      }}>
+        <AlertDialogContent className="bg-white max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Deposit Payment Received</AlertDialogTitle>
             <AlertDialogDescription>
-              Have you received the deposit payment for this order?
+              Enter the deposit amount paid by the customer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           {orderToAction && (
-            <div className="mt-1 p-3 bg-gray-50 rounded-md">
-              <div className="text-gray-900">
-                <strong>Order ID:</strong> {orderToAction.id.slice(0, 8)}
+            <div className="mt-1 space-y-3">
+              <div className="p-3 bg-gray-50 rounded-md space-y-2">
+                <div className="text-gray-900">
+                  <strong>Order ID:</strong> {orderToAction.id.slice(0, 8)}
+                </div>
+                <div className="text-gray-900">
+                  <strong>Customer:</strong> {orderToAction.customerName}
+                </div>
+                <div className="text-gray-900">
+                  <strong>Total Amount:</strong> ₱{orderToAction.totalAmount?.toLocaleString() || '0'}
+                </div>
               </div>
-              <div className="text-gray-900">
-                <strong>Customer:</strong> {orderToAction.customerName}
-              </div>
-              <div className="text-gray-900">
-                <strong>Total Amount:</strong> ₱{orderToAction.totalAmount?.toLocaleString() || '0'}
-              </div>
-              <div className="text-gray-900">
-                <strong>Deposit Amount:</strong> ₱{(orderToAction.depositAmount || 0).toLocaleString()}
-              </div>
-              <div className="text-gray-900">
-                <strong>Remaining:</strong> ₱{((orderToAction.totalAmount || 0) - (orderToAction.depositAmount || 0)).toLocaleString()}
+              
+              <div className="space-y-2">
+                <Label htmlFor="deposit-amount">Deposit Amount (₱)</Label>
+                <Input
+                  id="deposit-amount"
+                  type="number"
+                  min="0"
+                  max={orderToAction.totalAmount}
+                  step="0.01"
+                  value={tempDepositAmount || (orderToAction.depositAmount || 0).toString()}
+                  onChange={(e) => {
+                    setTempDepositAmount(e.target.value);
+                  }}
+                  placeholder="Enter deposit amount"
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500">
+                  Remaining amount: ₱{((orderToAction.totalAmount || 0) - (parseFloat(tempDepositAmount) || orderToAction.depositAmount || 0)).toLocaleString()}
+                </p>
               </div>
             </div>
           )}
-          <p className="text-sm text-purple-600">
-            This will mark the deposit as paid. Customer will need to pay the remaining amount.
-          </p>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOrderToAction(null)}>Not Yet</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => {
+              setOrderToAction(null);
+              setTempDepositAmount('');
+            }}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDeposit}
               className="bg-purple-600 hover:bg-purple-700"
             >
-              Yes, Deposit Received
+              Confirm Deposit
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

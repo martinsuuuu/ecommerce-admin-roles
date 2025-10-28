@@ -186,6 +186,7 @@ export function ExpenseTracking() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Product Purchase">Product Purchase</SelectItem>
                       <SelectItem value="Shipping">Shipping</SelectItem>
                       <SelectItem value="Supplies">Supplies</SelectItem>
                       <SelectItem value="Marketing">Marketing</SelectItem>

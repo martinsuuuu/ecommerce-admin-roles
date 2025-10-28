@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 
@@ -27,7 +27,9 @@ export function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [purchasingProduct, setPurchasingProduct] = useState<Product | null>(null);
   
   // Form state
   const [name, setName] = useState('');
@@ -38,6 +40,11 @@ export function ProductManagement() {
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
   const [estimatedArrival, setEstimatedArrival] = useState('');
+
+  // Purchase form state
+  const [purchaseQuantity, setPurchaseQuantity] = useState('');
+  const [purchaseCost, setPurchaseCost] = useState('');
+  const [supplier, setSupplier] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -151,6 +158,52 @@ export function ProductManagement() {
     }
   };
 
+  const handlePurchase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!purchasingProduct) return;
+
+    const purchaseData = {
+      productId: purchasingProduct.id,
+      quantity: parseInt(purchaseQuantity),
+      costPerUnit: parseFloat(purchaseCost),
+      supplier,
+      totalCost: parseInt(purchaseQuantity) * parseFloat(purchaseCost),
+    };
+
+    try {
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-793a174e/products/purchase`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify(purchaseData),
+        }
+      );
+
+      if (response.ok) {
+        toast.success('Product purchase recorded!');
+        setPurchaseDialogOpen(false);
+        resetPurchaseForm();
+        fetchProducts();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to record purchase');
+      }
+    } catch (error) {
+      console.error('Error recording purchase:', error);
+      toast.error('An error occurred');
+    }
+  };
+
+  const handlePurchaseClick = (product: Product) => {
+    setPurchasingProduct(product);
+    setPurchaseCost(product.cost.toString());
+    setPurchaseDialogOpen(true);
+  };
+
   const resetForm = () => {
     setEditingProduct(null);
     setName('');
@@ -161,6 +214,13 @@ export function ProductManagement() {
     setImage('');
     setDescription('');
     setEstimatedArrival('');
+  };
+
+  const resetPurchaseForm = () => {
+    setPurchasingProduct(null);
+    setPurchaseQuantity('');
+    setPurchaseCost('');
+    setSupplier('');
   };
 
   const getCategoryBadge = (category: string) => {
@@ -381,6 +441,15 @@ export function ProductManagement() {
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => handlePurchaseClick(product)}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Purchase Stock"
+                          >
+                            <ShoppingCart className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => handleEdit(product)}
                           >
                             <Edit className="h-4 w-4" />
@@ -402,6 +471,84 @@ export function ProductManagement() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Purchase Dialog */}
+      <Dialog open={purchaseDialogOpen} onOpenChange={(open) => {
+        setPurchaseDialogOpen(open);
+        if (!open) resetPurchaseForm();
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Purchase Stock</DialogTitle>
+            <DialogDescription>
+              Record a purchase for {purchasingProduct?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handlePurchase} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="purchase-quantity">Quantity</Label>
+              <Input
+                id="purchase-quantity"
+                type="number"
+                min="1"
+                value={purchaseQuantity}
+                onChange={(e) => setPurchaseQuantity(e.target.value)}
+                placeholder="Enter quantity"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="purchase-cost">Cost per Unit (₱)</Label>
+              <Input
+                id="purchase-cost"
+                type="number"
+                step="0.01"
+                min="0"
+                value={purchaseCost}
+                onChange={(e) => setPurchaseCost(e.target.value)}
+                placeholder="Enter cost per unit"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="supplier">Supplier</Label>
+              <Input
+                id="supplier"
+                value={supplier}
+                onChange={(e) => setSupplier(e.target.value)}
+                placeholder="Enter supplier name"
+                required
+              />
+            </div>
+
+            {purchaseQuantity && purchaseCost && (
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Total Cost:</strong> ₱{(parseInt(purchaseQuantity) * parseFloat(purchaseCost)).toLocaleString()}
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setPurchaseDialogOpen(false);
+                  resetPurchaseForm();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">
+                Record Purchase
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
