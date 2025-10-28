@@ -9,7 +9,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { toast } from 'sonner@2.0.3';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
-import { Package, Truck, CheckCircle, XCircle, CheckSquare, DollarSign, Coins } from 'lucide-react';
+import { Package, Truck, CheckCircle, XCircle, CheckSquare, DollarSign, Coins, Edit } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,7 +49,9 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [depositConfirmOpen, setDepositConfirmOpen] = useState(false);
   const [fullPaymentConfirmOpen, setFullPaymentConfirmOpen] = useState(false);
+  const [editDepositOpen, setEditDepositOpen] = useState(false);
   const [orderToAction, setOrderToAction] = useState<Order | null>(null);
+  const [newDepositAmount, setNewDepositAmount] = useState('');
 
   useEffect(() => {
     fetchOrders();
@@ -109,68 +111,43 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
   };
 
   const markReadyForPayment = async (orderId: string) => {
-    try {
-      await updateOrderStatus(orderId, 'ready_for_payment');
-    } catch (error) {
-      console.error('Error marking ready for payment:', error);
-    }
+    await updateOrderStatus(orderId, 'ready_for_payment');
   };
 
   const markAsShipped = async (orderId: string, shippingMethod: string) => {
-    try {
-      await updateOrderStatus(orderId, 'shipped', shippingMethod);
-      setDialogOpen(false);
-      setSelectedOrder(null);
-    } catch (error) {
-      console.error('Error marking as shipped:', error);
+    await updateOrderStatus(orderId, 'shipped', shippingMethod);
+    setDialogOpen(false);
+  };
+
+  const handleCancelOrder = () => {
+    if (orderToAction) {
+      updateOrderStatus(orderToAction.id, 'cancelled');
+      setCancelDialogOpen(false);
+      setOrderToAction(null);
     }
   };
 
-  const handleCancelOrder = async () => {
+  const handleCompleteOrder = () => {
     if (orderToAction) {
-      try {
-        await updateOrderStatus(orderToAction.id, 'cancelled');
-        setCancelDialogOpen(false);
-        setOrderToAction(null);
-      } catch (error) {
-        console.error('Error cancelling order:', error);
-      }
+      updateOrderStatus(orderToAction.id, 'completed');
+      setCompleteDialogOpen(false);
+      setOrderToAction(null);
     }
   };
 
-  const handleCompleteOrder = async () => {
+  const handleConfirmDeposit = () => {
     if (orderToAction) {
-      try {
-        await updateOrderStatus(orderToAction.id, 'completed');
-        setCompleteDialogOpen(false);
-        setOrderToAction(null);
-      } catch (error) {
-        console.error('Error completing order:', error);
-      }
+      updateOrderStatus(orderToAction.id, 'deposit_paid');
+      setDepositConfirmOpen(false);
+      setOrderToAction(null);
     }
   };
 
-  const handleConfirmDeposit = async () => {
+  const handleConfirmFullPayment = () => {
     if (orderToAction) {
-      try {
-        await updateOrderStatus(orderToAction.id, 'deposit_paid');
-        setDepositConfirmOpen(false);
-        setOrderToAction(null);
-      } catch (error) {
-        console.error('Error confirming deposit:', error);
-      }
-    }
-  };
-
-  const handleConfirmFullPayment = async () => {
-    if (orderToAction) {
-      try {
-        await updateOrderStatus(orderToAction.id, 'fully_paid');
-        setFullPaymentConfirmOpen(false);
-        setOrderToAction(null);
-      } catch (error) {
-        console.error('Error confirming full payment:', error);
-      }
+      updateOrderStatus(orderToAction.id, 'fully_paid');
+      setFullPaymentConfirmOpen(false);
+      setOrderToAction(null);
     }
   };
 
@@ -272,7 +249,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                       <TableCell className="text-gray-600">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="w-[250px]">
+                      <TableCell>
                         <div className="flex gap-2 flex-wrap">
                           {userRole === 'master' && order.status === 'pending' && (
                             <>
@@ -280,7 +257,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => markReadyForPayment(order.id)}
-                                className="whitespace-nowrap"
                               >
                                 <Package className="mr-1 h-3 w-3" />
                                 Mark Ready
@@ -292,7 +268,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setOrderToAction(order);
                                   setCancelDialogOpen(true);
                                 }}
-                                className="whitespace-nowrap"
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Cancel
@@ -304,7 +279,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
+                                className="bg-purple-600 hover:bg-purple-700"
                                 onClick={() => {
                                   setOrderToAction(order);
                                   setDepositConfirmOpen(true);
@@ -316,7 +291,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                                className="bg-green-600 hover:bg-green-700"
                                 onClick={() => {
                                   setOrderToAction(order);
                                   setFullPaymentConfirmOpen(true);
@@ -332,7 +307,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setOrderToAction(order);
                                   setCancelDialogOpen(true);
                                 }}
-                                className="whitespace-nowrap"
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Cancel
@@ -344,7 +318,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                                className="bg-green-600 hover:bg-green-700"
                                 onClick={() => {
                                   setOrderToAction(order);
                                   setFullPaymentConfirmOpen(true);
@@ -360,7 +334,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setOrderToAction(order);
                                   setCancelDialogOpen(true);
                                 }}
-                                className="whitespace-nowrap"
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Cancel
@@ -375,7 +348,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                   setSelectedOrder(order);
                                   setDialogOpen(true);
                                 }}
-                                className="whitespace-nowrap"
                               >
                                 <Truck className="mr-1 h-3 w-3" />
                                 Ship Order
@@ -388,7 +360,6 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                     setOrderToAction(order);
                                     setCancelDialogOpen(true);
                                   }}
-                                  className="whitespace-nowrap"
                                 >
                                   <XCircle className="mr-1 h-3 w-3" />
                                   Cancel
@@ -406,7 +377,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                                 <Button
                                   size="sm"
                                   variant="default"
-                                  className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                                  className="bg-green-600 hover:bg-green-700"
                                   onClick={() => {
                                     setOrderToAction(order);
                                     setCompleteDialogOpen(true);
@@ -442,10 +413,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
       </Card>
 
       {/* Shipping Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => {
-        setDialogOpen(open);
-        if (!open) setSelectedOrder(null);
-      }}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Mark Order as Shipped</DialogTitle>

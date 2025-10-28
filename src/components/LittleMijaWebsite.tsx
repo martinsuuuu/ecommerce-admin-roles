@@ -216,10 +216,10 @@ export function LittleMijaWebsite({ onSignupClick, onLoginClick, cart, onAddToCa
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-2 sm:px-4"
+                      className="hidden md:flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-4"
                     >
                       <UserCircle className="h-5 w-5" />
-                      <span className="max-w-[100px] truncate hidden sm:inline">{currentUser.name}</span>
+                      <span className="max-w-[100px] truncate">{currentUser.name}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg border-2 border-[#d4a5a5]/20">
@@ -244,10 +244,10 @@ export function LittleMijaWebsite({ onSignupClick, onLoginClick, cart, onAddToCa
                 <Button 
                   variant="ghost" 
                   onClick={onLoginClick}
-                  className="flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-2 sm:px-4"
+                  className="hidden md:flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-4"
                 >
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Login</span>
+                  <span>Login</span>
                 </Button>
               )}
               <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-pink-100">
