@@ -385,6 +385,23 @@ app.get('/make-server-793a174e/orders', async (c) => {
   }
 });
 
+// Get single order by ID
+app.get('/make-server-793a174e/orders/:orderId', async (c) => {
+  try {
+    const orderId = c.req.param('orderId');
+    const order = await kv.get(`order:${orderId}`);
+    
+    if (!order) {
+      return c.json({ error: 'Order not found' }, 404);
+    }
+
+    return c.json({ order });
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    return c.json({ error: 'Failed to fetch order' }, 500);
+  }
+});
+
 // Get customer orders
 app.get('/make-server-793a174e/customer-orders/:userId', async (c) => {
   try {

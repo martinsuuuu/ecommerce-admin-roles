@@ -15,8 +15,6 @@ import { Button } from './ui/button';
 import { Overview } from './admin/Overview';
 import { ProductManagement } from './admin/ProductManagement';
 import { OrderManagement } from './admin/OrderManagement';
-import { ExpenseTracking } from './admin/ExpenseTracking';
-import { Reports } from './admin/Reports';
 import { SupplierOrders } from './admin/SupplierOrders';
 import logoImage from 'figma:asset/086cf3cc9a736a513ded11d47e82ce484a90947a.png';
 
@@ -32,7 +30,7 @@ type MasterAdminDashboardProps = {
   onLogout: () => void;
 };
 
-type TabType = 'overview' | 'products' | 'orders' | 'expenses' | 'reports' | 'suppliers';
+type TabType = 'overview' | 'products' | 'orders' | 'suppliers';
 
 export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -42,16 +40,38 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
     { id: 'overview' as TabType, label: 'Overview', icon: LayoutDashboard },
     { id: 'products' as TabType, label: 'Products', icon: Package },
     { id: 'orders' as TabType, label: 'Orders', icon: ShoppingCart },
-    { id: 'expenses' as TabType, label: 'Expenses', icon: DollarSign },
-    { id: 'reports' as TabType, label: 'Reports', icon: BarChart3 },
     { id: 'suppliers' as TabType, label: 'Suppliers', icon: Truck },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf3f0] via-[#fef7f3] to-[#fff9f5] font-['Poppins',sans-serif]">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-gradient-to-br from-[#faf3f0] via-[#fef7f3] to-[#fff9f5] font-['Poppins',sans-serif] pb-20 md:pb-0">
+      {/* Top Bar for Mobile - Show logout button */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b-2 border-[#d4a5a5]/20 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button 
+            onClick={onLogout}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <img src={logoImage} alt="Little Mija" className="w-10 h-10 rounded-full shadow-md" />
+            <div className="text-left">
+              <h2 className="font-bold text-[#7d5a50]">Little Mija</h2>
+              <p className="text-xs text-[#a67c6d]">Master Admin</p>
+            </div>
+          </button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-2 border-[#d4a5a5]/40 text-[#7d5a50] hover:bg-red-50 hover:text-red-600 hover:border-red-300 rounded-xl"
+            onClick={onLogout}
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Sidebar - Hidden on mobile */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen bg-white/95 backdrop-blur-sm border-r-2 border-[#d4a5a5]/20 shadow-lg transition-all duration-300 ${
+        className={`hidden md:block md:fixed left-0 top-0 z-40 h-screen bg-white/95 backdrop-blur-sm border-r-2 border-[#d4a5a5]/20 shadow-lg transition-all duration-300 ${
           sidebarOpen ? 'w-64' : 'w-20'
         }`}
       >
@@ -60,13 +80,16 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
           <div className="flex items-center justify-between p-6 border-b-2 border-[#d4a5a5]/20">
             {sidebarOpen ? (
               <>
-                <div className="flex items-center gap-3">
+                <button 
+                  onClick={onLogout}
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                >
                   <img src={logoImage} alt="Little Mija" className="w-10 h-10 rounded-full shadow-md" />
-                  <div>
+                  <div className="text-left">
                     <h2 className="font-bold text-[#7d5a50]">Little Mija</h2>
                     <p className="text-xs text-[#a67c6d]">Master Admin</p>
                   </div>
-                </div>
+                </button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -148,11 +171,34 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
         </div>
       </aside>
 
+      {/* Bottom Navigation for Mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t-2 border-[#d4a5a5]/20 shadow-lg">
+        <div className="grid grid-cols-4 gap-1 px-2 py-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center justify-center py-2.5 px-1 rounded-xl transition-all ${
+                  isActive
+                    ? 'text-[#f8bbd0]'
+                    : 'text-[#7d5a50]/60'
+                }`}
+              >
+                <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
       {/* Main Content */}
       <main
         className={`transition-all duration-300 ${
-          sidebarOpen ? 'ml-64' : 'ml-20'
-        }`}
+          sidebarOpen ? 'md:ml-64' : 'md:ml-20'
+        } mt-16 md:mt-0`}
       >
         <div className="p-8">
           {/* Header */}
@@ -164,8 +210,6 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
               {activeTab === 'overview' && 'Dashboard overview and key metrics'}
               {activeTab === 'products' && 'Manage your product catalog'}
               {activeTab === 'orders' && 'View and manage customer orders'}
-              {activeTab === 'expenses' && 'Track business expenses'}
-              {activeTab === 'reports' && 'Financial reports and analytics'}
               {activeTab === 'suppliers' && 'Supplier orders and costing'}
             </p>
           </div>
@@ -175,8 +219,6 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
             {activeTab === 'overview' && <Overview />}
             {activeTab === 'products' && <ProductManagement />}
             {activeTab === 'orders' && <OrderManagement userRole="master" />}
-            {activeTab === 'expenses' && <ExpenseTracking />}
-            {activeTab === 'reports' && <Reports />}
             {activeTab === 'suppliers' && <SupplierOrders />}
           </div>
         </div>
