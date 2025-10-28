@@ -9,7 +9,8 @@ import {
   LogOut,
   Menu,
   X,
-  Baby
+  Baby,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Overview } from './admin/Overview';
@@ -30,7 +31,7 @@ type MasterAdminDashboardProps = {
   onLogout: () => void;
 };
 
-type TabType = 'overview' | 'products' | 'orders' | 'suppliers';
+type TabType = 'overview' | 'products' | 'orders' | 'completed' | 'suppliers';
 
 export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -40,6 +41,7 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
     { id: 'overview' as TabType, label: 'Overview', icon: LayoutDashboard },
     { id: 'products' as TabType, label: 'Products', icon: Package },
     { id: 'orders' as TabType, label: 'Orders', icon: ShoppingCart },
+    { id: 'completed' as TabType, label: 'Completed', icon: CheckCircle },
     { id: 'suppliers' as TabType, label: 'Suppliers', icon: Truck },
   ];
 
@@ -173,7 +175,7 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
 
       {/* Bottom Navigation for Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t-2 border-[#d4a5a5]/20 shadow-lg">
-        <div className="grid grid-cols-4 gap-1 px-2 py-2">
+        <div className="grid grid-cols-5 gap-1 px-2 py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -210,6 +212,7 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
               {activeTab === 'overview' && 'Dashboard overview and key metrics'}
               {activeTab === 'products' && 'Manage your product catalog'}
               {activeTab === 'orders' && 'View and manage customer orders'}
+              {activeTab === 'completed' && 'View completed orders'}
               {activeTab === 'suppliers' && 'Supplier orders and costing'}
             </p>
           </div>
@@ -219,6 +222,7 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
             {activeTab === 'overview' && <Overview />}
             {activeTab === 'products' && <ProductManagement />}
             {activeTab === 'orders' && <OrderManagement userRole="master" />}
+            {activeTab === 'completed' && <OrderManagement userRole="master" filterStatus="completed" />}
             {activeTab === 'suppliers' && <SupplierOrders />}
           </div>
         </div>

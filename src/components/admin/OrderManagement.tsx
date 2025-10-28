@@ -39,9 +39,10 @@ type Order = {
 
 type OrderManagementProps = {
   userRole: 'master' | 'second';
+  filterStatus?: string;
 };
 
-export function OrderManagement({ userRole }: OrderManagementProps) {
+export function OrderManagement({ userRole, filterStatus }: OrderManagementProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -72,7 +73,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
-  }, [userRole]);
+  }, [userRole, filterStatus]);
 
   const fetchOrders = async () => {
     try {
@@ -93,7 +94,14 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
       if (response.ok) {
         const data = await response.json();
         console.log('Orders fetched:', data.orders?.length || 0);
-        setOrders(data.orders || []);
+        
+        // Filter orders based on filterStatus if provided
+        let filteredOrders = data.orders || [];
+        if (filterStatus) {
+          filteredOrders = filteredOrders.filter((order: Order) => order.status === filterStatus);
+        }
+        
+        setOrders(filteredOrders);
       } else {
         const errorText = await response.text();
         console.error('Failed to fetch orders. Status:', response.status, 'Error:', errorText);
@@ -245,6 +253,8 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
               <div className="text-center text-gray-500 py-8">
                 {userRole === 'second'
                   ? 'No orders ready to ship at the moment.'
+                  : filterStatus === 'completed'
+                  ? 'No completed orders found.'
                   : 'No orders found.'}
               </div>
             ) : (
@@ -291,6 +301,8 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
                     <TableCell colSpan={7} className="text-center text-gray-500">
                       {userRole === 'second'
                         ? 'No orders ready to ship at the moment.'
+                        : filterStatus === 'completed'
+                        ? 'No completed orders found.'
                         : 'No orders found.'}
                     </TableCell>
                   </TableRow>
