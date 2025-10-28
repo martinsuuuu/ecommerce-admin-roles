@@ -157,6 +157,50 @@ app.delete('/make-server-793a174e/products/:id', async (c) => {
   }
 });
 
+// Purchase product (admin/owner)
+app.post('/make-server-793a174e/products/purchase', async (c) => {
+  try {
+    const { productId, quantity, costPerUnit, supplier, totalCost } = await c.req.json();
+
+    // Get the product
+    const product = await kv.get(`product:${productId}`);
+    if (!product) {
+      return c.json({ error: 'Product not found' }, 404);
+    }
+
+    // Update product stock
+    product.stock += quantity;
+    product.cost = costPerUnit; // Update cost to reflect new purchase price
+    await kv.set(`product:${productId}`, product);
+
+    // Create expense record for the purchase
+    const expenseId = generateId();
+    const expense = {
+      id: expenseId,
+      description: `Product Purchase: ${product.name} (${quantity} units)`,
+      amount: totalCost,
+      category: 'Product Purchase',
+      supplier,
+      productId,
+      quantity,
+      costPerUnit,
+      date: now(),
+      createdAt: now(),
+    };
+
+    await kv.set(`expense:${expenseId}`, expense);
+
+    return c.json({ 
+      message: 'Product purchase recorded successfully',
+      product: product,
+      expense: expense
+    });
+  } catch (error) {
+    console.error('Error recording product purchase:', error);
+    return c.json({ error: 'Failed to record purchase' }, 500);
+  }
+});
+
 // ==================== CART ROUTES ====================
 
 // Get cart
