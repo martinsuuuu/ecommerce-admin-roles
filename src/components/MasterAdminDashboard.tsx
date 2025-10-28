@@ -3,20 +3,13 @@ import {
   LayoutDashboard, 
   Package, 
   ShoppingCart, 
-  DollarSign, 
-  BarChart3, 
   Truck, 
-  LogOut,
-  Menu,
-  X,
-  Baby
+  LogOut
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Overview } from './admin/Overview';
 import { ProductManagement } from './admin/ProductManagement';
 import { OrderManagement } from './admin/OrderManagement';
-import { ExpenseTracking } from './admin/ExpenseTracking';
-import { Reports } from './admin/Reports';
 import { SupplierOrders } from './admin/SupplierOrders';
 import logoImage from 'figma:asset/086cf3cc9a736a513ded11d47e82ce484a90947a.png';
 
@@ -33,7 +26,7 @@ type MasterAdminDashboardProps = {
   onGoHome?: () => void;
 };
 
-type TabType = 'overview' | 'products' | 'orders' | 'expenses' | 'reports' | 'suppliers';
+type TabType = 'overview' | 'products' | 'orders' | 'suppliers';
 
 export function MasterAdminDashboard({ user, onLogout, onGoHome }: MasterAdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
