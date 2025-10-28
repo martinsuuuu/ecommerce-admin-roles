@@ -209,17 +209,18 @@ export function LittleMijaWebsite({ onSignupClick, onLoginClick, cart, onAddToCa
               <a href="#contact" className="text-[#7d5a50] hover:text-[#d4a5a5] transition-colors">Contact</a>
             </nav>
 
-            {/* Cart */}
+            {/* Cart & User Menu */}
             <div className="flex items-center gap-2">
+              {/* Desktop User Menu */}
               {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-2 sm:px-4"
+                      className="hidden md:flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-4"
                     >
                       <UserCircle className="h-5 w-5" />
-                      <span className="max-w-[100px] truncate hidden sm:inline">{currentUser.name}</span>
+                      <span className="max-w-[100px] truncate">{currentUser.name}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg border-2 border-[#d4a5a5]/20">
@@ -244,13 +245,55 @@ export function LittleMijaWebsite({ onSignupClick, onLoginClick, cart, onAddToCa
                 <Button 
                   variant="ghost" 
                   onClick={onLoginClick}
-                  className="flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-2 sm:px-4"
+                  className="hidden md:flex items-center gap-2 text-[#7d5a50] hover:text-[#d4a5a5] hover:bg-pink-50 rounded-full px-4"
                 >
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Login</span>
+                  <span>Login</span>
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-pink-100">
+
+              {/* Mobile User Icon */}
+              {currentUser ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="md:hidden relative rounded-full hover:bg-pink-100"
+                    >
+                      <UserCircle className="h-5 w-5 text-[#d4a5a5]" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg border-2 border-[#d4a5a5]/20">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-semibold text-[#7d5a50]">{currentUser.name}</p>
+                        <p className="text-xs text-[#a67c6d]">{currentUser.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="cursor-pointer text-[#7d5a50] focus:bg-pink-50 focus:text-[#7d5a50]" onClick={onViewCart}>
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      My Cart
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer text-[#7d5a50] focus:bg-pink-50 focus:text-[#7d5a50]" onClick={onLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={onLoginClick}
+                  className="md:hidden relative rounded-full hover:bg-pink-100"
+                >
+                  <User className="h-5 w-5 text-[#d4a5a5]" />
+                </Button>
+              )}
+
+              <Button variant="ghost" size="icon" className="hidden md:flex relative rounded-full hover:bg-pink-100">
                 <Heart className="h-5 w-5 text-[#d4a5a5]" />
               </Button>
               <Button 

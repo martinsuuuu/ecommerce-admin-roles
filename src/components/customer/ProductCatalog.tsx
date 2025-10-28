@@ -46,9 +46,13 @@ export function ProductCatalog({ userId, onCartUpdate }: ProductCatalogProps) {
       if (response.ok) {
         const data = await response.json();
         setProducts(data.products || []);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch products. Status:', response.status, 'Error:', errorText);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
+      console.error('Error details:', error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }
