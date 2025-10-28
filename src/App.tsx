@@ -131,9 +131,9 @@ export default function App() {
   // If user is logged in, show dashboard regardless of view state
   if (currentUser) {
     if (currentUser.role === 'master') {
-      return <MasterAdminDashboard user={currentUser} onLogout={handleLogout} onGoHome={handleBackToPublic} />;
+      return <MasterAdminDashboard user={currentUser} onLogout={handleLogout} />;
     } else if (currentUser.role === 'second') {
-      return <SecondAdminDashboard user={currentUser} onLogout={handleLogout} onGoHome={handleBackToPublic} />;
+      return <SecondAdminDashboard user={currentUser} onLogout={handleLogout} />;
     } else if (currentUser.role === 'customer') {
       return (
         <CustomerView 
