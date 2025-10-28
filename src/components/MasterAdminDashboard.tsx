@@ -175,7 +175,7 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
 
       {/* Bottom Navigation for Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t-2 border-[#d4a5a5]/20 shadow-lg">
-        <div className="grid grid-cols-5 gap-1 px-2 py-2">
+        <div className="flex items-center justify-around px-2 py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -183,7 +183,7 @@ export function MasterAdminDashboard({ user, onLogout }: MasterAdminDashboardPro
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex items-center justify-center py-2.5 px-1 rounded-xl transition-all ${
+                className={`flex items-center justify-center py-2.5 px-2 rounded-xl transition-all flex-1 ${
                   isActive
                     ? 'text-[#f8bbd0]'
                     : 'text-[#7d5a50]/60'
