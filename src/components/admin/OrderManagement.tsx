@@ -99,6 +99,9 @@ export function OrderManagement({ userRole, filterStatus }: OrderManagementProps
         let filteredOrders = data.orders || [];
         if (filterStatus) {
           filteredOrders = filteredOrders.filter((order: Order) => order.status === filterStatus);
+        } else {
+          // Exclude completed orders from the orders tab
+          filteredOrders = filteredOrders.filter((order: Order) => order.status !== 'completed');
         }
         
         setOrders(filteredOrders);

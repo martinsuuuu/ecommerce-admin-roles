@@ -281,8 +281,6 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
                         <SelectContent>
                           <SelectItem value="lalamove">Lalamove</SelectItem>
                           <SelectItem value="shopee">Shopee Checkout</SelectItem>
-                          <SelectItem value="standard">Standard Shipping</SelectItem>
-                          <SelectItem value="express">Express Shipping</SelectItem>
                           <SelectItem value="pickup">Store Pickup</SelectItem>
                         </SelectContent>
                       </Select>
