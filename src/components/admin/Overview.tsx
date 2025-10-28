@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { DollarSign, ShoppingCart, Package, TrendingUp, TrendingDown, Activity, CheckCircle2 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { DollarSign, ShoppingCart, Package, TrendingUp, TrendingDown, Activity, CheckCircle2, BarChart3, Receipt } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { ExpenseTracking } from './ExpenseTracking';
+import { Reports } from './Reports';
 
 type Stats = {
   totalSales: number;
@@ -24,6 +27,7 @@ export function Overview() {
     totalProducts: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<'overview' | 'expenses' | 'reports'>('overview');
 
   useEffect(() => {
     fetchStats();
@@ -126,9 +130,43 @@ export function Overview() {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-6">
+      {/* View Switcher */}
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-lg w-fit">
+        <Button
+          variant={activeView === 'overview' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveView('overview')}
+          className={activeView === 'overview' ? 'bg-white shadow-sm' : ''}
+        >
+          <Activity className="w-4 h-4 mr-2" />
+          Overview
+        </Button>
+        <Button
+          variant={activeView === 'expenses' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveView('expenses')}
+          className={activeView === 'expenses' ? 'bg-white shadow-sm' : ''}
+        >
+          <Receipt className="w-4 h-4 mr-2" />
+          Expenses
+        </Button>
+        <Button
+          variant={activeView === 'reports' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveView('reports')}
+          className={activeView === 'reports' ? 'bg-white shadow-sm' : ''}
+        >
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Reports
+        </Button>
+      </div>
+
+      {/* Content based on active view */}
+      {activeView === 'overview' && (
+        <div className="space-y-8">
+          {/* Stats Grid */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -223,6 +261,11 @@ export function Overview() {
           </CardContent>
         </Card>
       </div>
+    </div>
+      )}
+
+      {activeView === 'expenses' && <ExpenseTracking />}
+      {activeView === 'reports' && <Reports />}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
+import { MobileOrderDetails } from './MobileOrderDetails';
 
 type Order = {
   id: string;
@@ -50,6 +51,8 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
   const [depositConfirmOpen, setDepositConfirmOpen] = useState(false);
   const [fullPaymentConfirmOpen, setFullPaymentConfirmOpen] = useState(false);
   const [orderToAction, setOrderToAction] = useState<Order | null>(null);
+  const [mobileOrderDetailsOpen, setMobileOrderDetailsOpen] = useState(false);
+  const [selectedOrderForMobile, setSelectedOrderForMobile] = useState<Order | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -174,6 +177,16 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
     }
   };
 
+  const handleMobileOrderClick = (order: Order) => {
+    setSelectedOrderForMobile(order);
+    setMobileOrderDetailsOpen(true);
+  };
+
+  const handleBackFromMobileDetails = () => {
+    setMobileOrderDetailsOpen(false);
+    setSelectedOrderForMobile(null);
+  };
+
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -215,7 +228,8 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -438,8 +452,59 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
               </TableBody>
             </Table>
           </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {orders.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                {userRole === 'second'
+                  ? 'No orders ready to ship at the moment.'
+                  : 'No orders found.'}
+              </div>
+            ) : (
+              orders.map((order) => (
+                <Card 
+                  key={order.id} 
+                  className="border-2 border-gray-200 cursor-pointer hover:border-[#f8bbd0] hover:shadow-lg transition-all"
+                  onClick={() => handleMobileOrderClick(order)}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-mono text-sm text-gray-600">#{order.id.slice(0, 8)}</p>
+                        <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      {getStatusBadge(order.status)}
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="space-y-1 pb-2 border-b">
+                      <p className="font-semibold text-gray-900">{order.customerName}</p>
+                      <p className="text-sm text-gray-600">{order.customerEmail}</p>
+                    </div>
+
+                    {/* Click to view details */}
+                    <div className="text-center py-2">
+                      <p className="text-xs text-[#a67c6d]">Tap to view full details</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Mobile Order Details */}
+      {mobileOrderDetailsOpen && selectedOrderForMobile && (
+        <MobileOrderDetails
+          order={selectedOrderForMobile}
+          userRole={userRole}
+          onBack={handleBackFromMobileDetails}
+          onUpdateOrderStatus={updateOrderStatus}
+        />
+      )}
 
       {/* Shipping Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(open) => {
@@ -479,7 +544,7 @@ export function OrderManagement({ userRole }: OrderManagementProps) {
 
               <div className="space-y-2">
                 <Label>Select Shipping Method</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     variant="outline"
                     className="h-20 flex flex-col gap-2"

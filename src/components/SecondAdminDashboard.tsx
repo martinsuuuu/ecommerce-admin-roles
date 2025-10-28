@@ -32,9 +32,10 @@ type Order = {
 type SecondAdminDashboardProps = {
   user: User;
   onLogout: () => void;
+  onGoHome?: () => void;
 };
 
-export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardProps) {
+export function SecondAdminDashboard({ user, onLogout, onGoHome }: SecondAdminDashboardProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,7 +104,12 @@ export function SecondAdminDashboard({ user, onLogout }: SecondAdminDashboardPro
         <div className="px-4 sm:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4">
-              <img src={logoImage} alt="Little Mija" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-md" />
+              <img 
+                src={logoImage} 
+                alt="Little Mija" 
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-md cursor-pointer" 
+                onClick={onGoHome}
+              />
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold text-[#7d5a50]">Warehouse Dashboard</h1>
                 <p className="text-xs sm:text-sm text-[#a67c6d] hidden sm:block">Ready to Ship Orders</p>
